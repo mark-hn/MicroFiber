@@ -27,7 +27,7 @@ using ThreadID = int;
 class MicroFiber {
 public:
     /* Thread identifiers and error codes */
-    enum class ThreadStatus : int {
+    enum class ThreadCodes : ThreadID {
         INVALID = -1,
         ANY = -2,
         NONE = -3,
@@ -40,7 +40,7 @@ public:
     using ThreadFunction = std::function<int(void *)>;
 
     /* Initialize MicroFiber */
-    void microfiber_start(const Config &config);
+    static void microfiber_start(const Config *config);
 
     /* Get the identifier of the currently running thread */
     ThreadID get_thread_id();
@@ -55,16 +55,16 @@ public:
     ThreadID thread_kill(ThreadID tid);
 
     /* Yield execution to a specified thread or the next available thread in the queue */
-    ThreadID thread_yield(ThreadID tid);
+    static ThreadID thread_yield(ThreadID tid);
 
     /* Check if interrupts are enabled */
-    bool is_interrupt_enabled();
+    static bool is_interrupt_enabled();
 
     /* Busy-wait for a specified number of microseconds */
-    void spin_wait(int microseconds);
+    static void spin_wait(int microseconds);
 
     /* Print a formatted message with interrupts temporarily disabled */
-    int safe_printf(const char *format, ...);
+    static int safe_printf(const char *format, ...);
 
 
     /* Forward declaration of a FIFO queue type */
@@ -102,7 +102,7 @@ public:
 
 private:
     /* Exit MicroFiber, cleaning up resources and exiting the process */
-    [[noreturn]] void microfiber_exit(int code);
+    [[noreturn]] static void microfiber_exit(int code);
 };
 
 #endif // MICROFIBER_HPP
