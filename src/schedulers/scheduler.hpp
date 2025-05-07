@@ -90,7 +90,7 @@ public:
 
 extern std::shared_ptr<Scheduler> scheduler;
 
-bool scheduler_init(Scheduler::Type type);
+bool scheduler_init(std::basic_string<char> type);
 
 void scheduler_end();
 

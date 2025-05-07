@@ -5,15 +5,15 @@
 
 class InterruptManager {
 public:
-    void interrupt_init();
+    static void interrupt_init();
 
-    void interrupt_end();
+    static void interrupt_end();
 
-    int interrupt_on();
+    static int interrupt_on();
 
-    int interrupt_off();
+    static int interrupt_off();
 
-    int interrupt_set(int enabled);
+    static int interrupt_set(int enabled);
 };
 
 
