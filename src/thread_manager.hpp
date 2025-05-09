@@ -4,8 +4,6 @@
 #include <csignal>
 #include "microfiber.hpp"
 
-class FifoQueue;
-
 class Thread {
 public:
     enum class State {
@@ -21,12 +19,12 @@ public:
     bool setcontext_called;     // identify if the thread called setcontext
     FifoQueue *wait_queue;      // wait queue associated with the thread (threads that called thread_wait on this thread)
     int num_reapers;            // number of threads that are reaping this thread
-    struct thread *member_of;   // the thread that this thread is a wait queue member of
+    struct Thread *member_of;   // the thread that this thread is a wait queue member of
     int prio;                   // the thread's priority
     State state;                // the thread's state
 
     // Queue node members
-    struct thread *next;        // pointer to the next node
+    struct Thread *next;        // pointer to the next node
     bool in_queue;              // indicates whether the item is in a queue
 };
 

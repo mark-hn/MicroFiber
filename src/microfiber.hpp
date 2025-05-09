@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include "queue.hpp"
 
 /* Maximum number of threads */
 constexpr int MAX_THREAD_COUNT = 1024;
@@ -27,7 +28,7 @@ using ThreadID = int;
 class MicroFiber {
 public:
     /* Thread identifiers and error codes */
-    enum class ThreadCodes : ThreadID {
+    enum class ThreadCodes : int {
         INVALID = -1,
         ANY = -2,
         NONE = -3,
@@ -37,22 +38,22 @@ public:
     };
 
     /* Thread entry point type */
-    using ThreadFunction = std::function<int(void *)>;
+    using ThreadFunction = int (*)(void *);
 
     /* Initialize MicroFiber */
     static void microfiber_start(const Config *config);
 
     /* Get the identifier of the currently running thread */
-    ThreadID get_thread_id();
+    static ThreadID get_thread_id();
 
     /* Create a thread to run the function fn(arg) with the given priority */
-    ThreadID thread_create(const ThreadFunction &fn, void *arg, int priority);
+    static ThreadID thread_create(const ThreadFunction &fn, void *arg, int priority);
 
     /* Exit the current thread, releasing resources and switching to another thread if available */
-    [[noreturn]] void thread_exit(int exit_code);
+    [[noreturn]]  static void thread_exit(int exit_code);
 
     /* Kill a thread specified by tid, stopping its execution */
-    ThreadID thread_kill(ThreadID tid);
+    static ThreadID thread_kill(ThreadID tid);
 
     /* Yield execution to a specified thread or the next available thread in the queue */
     static ThreadID thread_yield(ThreadID tid);
@@ -66,43 +67,42 @@ public:
     /* Print a formatted message with interrupts temporarily disabled */
     static int safe_printf(const char *format, ...);
 
-
-    /* Forward declaration of a FIFO queue type */
-    struct FifoQueue;
-    using FifoQueuePtr = std::shared_ptr<FifoQueue>;
-
     /* Suspend the current thread, adding it to a wait queue, and switch to another thread */
-    ThreadID thread_sleep(FifoQueuePtr queue);
+    static ThreadID thread_sleep(FifoQueue *queue);
 
     /* Wake up threads from the wait queue and add them to the ready queue */
-    int thread_wakeup(FifoQueuePtr queue, bool wake_all);
+    static int thread_wakeup(FifoQueue *queue, bool wake_all);
 
     /* Wait for a specified thread to exit, and optionally retrieve its exit code */
-    int thread_wait(ThreadID tid, int *exit_code);
+    static int thread_wait(ThreadID tid, int *exit_code);
 
     /* Set the priority of the current thread */
-    void set_thread_priority(int priority);
-
-
-    /* Forward declaration of a lock structure */
-    struct Lock;
-
-    /* Create a blocking lock, initially available */
-    std::unique_ptr<Lock> create_lock();
-
-    /* Destroy a lock, ensuring it is available */
-    void destroy_lock(std::unique_ptr<Lock> lock);
-
-    /* Acquire a lock, blocking the calling thread if necessary */
-    void acquire_lock(Lock &lock);
-
-    /* Release a lock, allowing waiting threads to acquire it */
-    void release_lock(Lock &lock);
-
+    static void set_thread_priority(int priority);
 
 private:
     /* Exit MicroFiber, cleaning up resources and exiting the process */
     [[noreturn]] static void microfiber_exit(int code);
+};
+
+
+struct Thread;
+
+class Lock {
+public:
+    Lock();
+
+    ~Lock();
+
+    // Acquire a lock, blocking the calling thread if necessary
+    void acquire();
+
+    // Release a lock, allowing waiting threads to acquire it
+    void release();
+
+private:
+    int flag;
+    Thread *owner;
+    FifoQueue *wait_queue;
 };
 
 #endif // MICROFIBER_HPP

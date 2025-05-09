@@ -21,7 +21,7 @@ void InterruptManager::interrupt_init() {
 
     assert(!init);
     init = 1;
-    action.sa_handler = NULL;
+    action.sa_handler = nullptr;
     action.sa_sigaction = interrupt_handler;
     error = sigemptyset(&action.sa_mask);
     assert(!error);
