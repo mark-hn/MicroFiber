@@ -1,171 +1,124 @@
-#include <cassert>
-#include "src/thread_manager.hpp"
 #include "queue.hpp"
+#include <stdexcept>
 
-struct fifo_queue {
-    node_item_t *first;     // first element of the queue
-    node_item_t *last;      // last element of the queue
-    unsigned len;           // number of elements of the queue
-    unsigned capacity;      // capacity of the queue
-};
+FifoQueue::FifoQueue(unsigned capacity) {
+    if (capacity <= 0) {
+        throw std::invalid_argument("Capacity must be > 0");
+    }
+    this->first = nullptr;
+    this->last = nullptr;
+    this->len = 0;
+    this->capacity = capacity;
+}
 
-bool node_in_queue(node_item_t * node)
-{
+FifoQueue::~FifoQueue() {
+    assert(first == nullptr);
+    assert(last == nullptr);
+    assert(len == 0);
+}
+
+bool FifoQueue::node_in_queue(const Thread *node) {
     assert(node != nullptr);
     return node->in_queue;
 }
 
-fifo_queue_t * queue_create(unsigned capacity)
-{
-    if (capacity <= 0) {
-        return nullptr;
-    }
-    auto *queue = static_cast<fifo_queue_t *>(malloc(sizeof(fifo_queue_t)));
-    if (queue == nullptr) {
-        return nullptr;
-    }
-    queue->first = nullptr;
-    queue->last = nullptr;
-    queue->len = 0;
-    queue->capacity = capacity;
-    return queue;
-}
+Thread *FifoQueue::pop() {
+    if (first == nullptr) return nullptr;
 
-void queue_destroy(fifo_queue_t * queue)
-{
-    assert(queue != nullptr);
-    assert(queue->first == nullptr);
-    assert(queue->last == nullptr);
-    assert(queue->len == 0);
-    free(queue);
-}
+    Thread *removed = first;
+    first = first->next;
+    if (first == nullptr) last = nullptr;
 
-node_item_t * queue_pop(fifo_queue_t * queue)
-{
-    assert(queue != nullptr);
-    if (queue->first == nullptr) {
-        return nullptr;
-    }
-
-    node_item_t *removed = queue->first;
-    queue->first = reinterpret_cast<node_item_t *>(queue->first->next);
-    if (queue->first == nullptr) {
-        queue->last = nullptr;
-    }
-    queue->len--;
-
+    len--;
     removed->in_queue = false;
     removed->next = nullptr;
+
     return removed;
 }
 
-node_item_t * queue_top(fifo_queue_t * queue)
-{
-    assert(queue != nullptr);
-    if (queue->first == nullptr) {
-        return nullptr;
-    }
-    return queue->first;
+Thread *FifoQueue::top() const {
+    return first;
 }
 
-int queue_push(fifo_queue_t * queue, node_item_t * node)
-{
-    assert(queue != nullptr);
+int FifoQueue::push(Thread *node) {
     assert(node != nullptr);
     assert(node->in_queue == false);
-    if (queue->len >= queue->capacity) {
-        return -1;
+
+    if (len >= capacity) return -1;
+
+    if (first == nullptr) {
+        first = node;
+        last = node;
+    } else {
+        last->next = node;
+        last = node;
     }
 
-    if (queue->first == nullptr) {
-        queue->first = node;
-        queue->last = node;
-    }
-    else {
-        queue->last->next = reinterpret_cast<struct thread *>(node);
-        queue->last = reinterpret_cast<node_item_t *>(queue->last->next);
-    }
-    queue->last->in_queue = true;
-    queue->last->next = nullptr;
-    queue->len++;
+    last->in_queue = true;
+    last->next = nullptr;
+    len++;
 
     return 0;
 }
 
-int queue_push_sorted(fifo_queue_t * queue, node_item_t * node)
-{
-    assert(queue != nullptr);
+int FifoQueue::push_sorted(Thread *node) {
     assert(node != nullptr);
     assert(node->in_queue == false);
-    if (queue->len >= queue->capacity) {
-        return -1;
-    }
 
-    if (queue->first == nullptr) {
-        queue->first = node;
-        queue->last = node;
-    }
-    else {
-        node_item_t *prev = nullptr;
-        node_item_t *curr = queue->first;
-        while (curr != nullptr) {
-            if (curr->prio > node->prio) {
-                break;
-            }
+    if (len >= capacity) return -1;
+
+    if (first == nullptr) {
+        first = last = node;
+    } else {
+        Thread *prev = nullptr;
+        Thread *curr = first;
+        while (curr != nullptr && curr->prio <= node->prio) {
             prev = curr;
-            curr = reinterpret_cast<node_item_t *>(curr->next);
+            curr = curr->next;
         }
+
         if (prev == nullptr) {
-            node->next = reinterpret_cast<struct thread *>(queue->first);
-            queue->first = node;
-        }
-        else {
-            prev->next = reinterpret_cast<struct thread *>(node);
-            node->next = reinterpret_cast<struct thread *>(curr);
+            node->next = first;
+            first = node;
+        } else {
+            prev->next = node;
+            node->next = curr;
             if (curr == nullptr) {
-                queue->last = node;
+                last = node;
             }
         }
     }
-    queue->last->in_queue = true;
-    queue->last->next = nullptr;
-    queue->len++;
 
+    node->in_queue = true;
+    len++;
     return 0;
 }
 
-node_item_t * queue_remove(fifo_queue_t * queue, int id)
-{
-    assert(queue != nullptr);
+Thread *FifoQueue::remove(int id) {
+    Thread *prev = nullptr;
+    Thread *curr = first;
 
-    node_item_t *prev = nullptr;
-    node_item_t *curr = queue->first;
     while (curr != nullptr) {
         if (curr->id == id) {
             if (prev == nullptr) {
-                queue->first = reinterpret_cast<node_item_t *>(curr->next);
-                if (queue->first == nullptr) {
-                    queue->last = nullptr;
-                }
-            }
-            else {
+                first = curr->next;
+                if (first == nullptr) last = nullptr;
+            } else {
                 prev->next = curr->next;
-                if (curr->next == nullptr) {
-                    queue->last = prev;
-                }
+                if (curr->next == nullptr) last = prev;
             }
-            queue->len--;
             curr->next = nullptr;
             curr->in_queue = false;
+            len--;
             return curr;
         }
         prev = curr;
-        curr = reinterpret_cast<node_item_t *>(curr->next);
+        curr = curr->next;
     }
+
     return nullptr;
 }
 
-unsigned int queue_count(fifo_queue_t * queue)
-{
-    return queue->len;
+unsigned FifoQueue::count() const {
+    return len;
 }
