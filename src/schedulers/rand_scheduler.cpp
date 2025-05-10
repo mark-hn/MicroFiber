@@ -1,6 +1,4 @@
 #include "scheduler.hpp"
-#include "src/microfiber.hpp"
-#include "src/thread_manager.hpp"
 
 static std::vector<Thread *> ready_queue;
 

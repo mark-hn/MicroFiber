@@ -216,12 +216,14 @@ void MicroFiber::thread_exit(int exit_code) {
     current_thread->exit_code = exit_code;
 
     assert(current_thread->wait_queue != nullptr);
-    thread_wakeup(current_thread->wait_queue, 1);
+    thread_wakeup(current_thread->wait_queue, true);
 
     if (thread_yield(static_cast<ThreadID>(ThreadCodes::ANY)) == static_cast<ThreadID>(ThreadCodes::NONE)) {
         InterruptManager::interrupt_off();
         microfiber_exit(exit_code);
     }
+
+    assert(false);
 }
 
 ThreadID MicroFiber::thread_kill(ThreadID tid) {

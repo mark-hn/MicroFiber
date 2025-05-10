@@ -5,6 +5,8 @@
 #include <cassert>
 #include "thread_manager.hpp"
 
+class Thread;
+
 class FifoQueue {
 public:
     explicit FifoQueue(unsigned capacity);

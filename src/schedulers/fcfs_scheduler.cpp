@@ -1,6 +1,4 @@
 #include "scheduler.hpp"
-#include "src/microfiber.hpp"
-#include "src/thread_manager.hpp"
 
 static std::unique_ptr<FifoQueue> ready_queue;
 

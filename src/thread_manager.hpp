@@ -4,6 +4,10 @@
 #include <csignal>
 #include "microfiber.hpp"
 
+using ThreadID = int;
+
+class FifoQueue;
+
 class Thread {
 public:
     enum class State {

@@ -4,7 +4,6 @@
 #include <string>
 #include <memory>
 #include <functional>
-#include "queue.hpp"
 
 /* Maximum number of threads */
 constexpr int MAX_THREAD_COUNT = 1024;
@@ -15,14 +14,21 @@ constexpr int MIN_STACK_SIZE = 32768;
 /* Interval for preemptive thread interrupts in microseconds */
 constexpr int INTERRUPT_INTERVAL = 200;
 
-/* Configuration for MicroFiber initialization */
-struct Config {
-    std::string scheduler_name;
-    bool is_preemptive;
-};
+/* Forward declaration */
+class FifoQueue;
 
 /* Type alias for a thread identifier */
 using ThreadID = int;
+
+/* Configuration for MicroFiber initialization */
+struct Config {
+    enum class SchedulerType {
+        Random, FCFS, Prio
+    };
+
+    SchedulerType scheduler_name;
+    bool is_preemptive;
+};
 
 
 class MicroFiber {

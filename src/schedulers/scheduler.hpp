@@ -1,16 +1,12 @@
 #ifndef MICROFIBER_SCHEDULER_H
 #define MICROFIBER_SCHEDULER_H
 
-
 #include "src/microfiber.hpp"
-
-class Thread;
+#include "src/queue.hpp"
 
 class Scheduler {
 public:
-    enum class Type {
-        Random, FCFS, Prio
-    };
+    using Type = Config::SchedulerType;
 
     virtual ~Scheduler() = default;
 
@@ -90,7 +86,7 @@ public:
 
 extern Scheduler *scheduler;
 
-bool scheduler_init(std::basic_string<char> type);
+bool scheduler_init(Scheduler::Type type);
 
 void scheduler_end();
 

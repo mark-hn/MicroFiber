@@ -2,7 +2,6 @@
 #include "interrupt_manager.hpp"
 #include "microfiber.hpp"
 #include <cassert>
-#include <bits/sigaction.h>
 #include <csignal>
 #include <sys/time.h>
 #include <cstdarg>
