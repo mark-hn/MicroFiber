@@ -7,13 +7,34 @@
 #include <sys/time.h>
 #include <cstdarg>
 
-static void interrupt_handler(int sig, siginfo_t *sip, void *contextVP);
-
-static void set_interrupt();
-
-static void set_signal(sigset_t *setp);
-
 static int init = 0;
+
+// Set the interval for the timer to trigger the interrupt
+static void set_interrupt() {
+    int ret;
+    struct itimerval val{};
+
+    val.it_interval.tv_sec = 0;
+    val.it_interval.tv_usec = 0;
+
+    val.it_value.tv_sec = 0;
+    val.it_value.tv_usec = INTERRUPT_INTERVAL;
+
+    ret = setitimer(ITIMER_REAL, &val, nullptr);
+    assert(!ret);
+}
+
+// This function is called when the signal is received
+static void interrupt_handler(int sig, siginfo_t *sip, void *contextVP) {
+    (void) sig;
+    (void) sip;
+    (void) contextVP;
+
+    assert(!MicroFiber::is_interrupt_enabled());
+
+    set_interrupt();
+    MicroFiber::thread_yield(static_cast<ThreadID>(MicroFiber::ThreadCodes::ANY));
+}
 
 void InterruptManager::interrupt_init() {
     struct sigaction action;
@@ -49,6 +70,14 @@ int InterruptManager::interrupt_on() {
 
 int InterruptManager::interrupt_off() {
     return interrupt_set(0);
+}
+
+static void set_signal(sigset_t *setp) {
+    int ret;
+    ret = sigemptyset(setp);
+    assert(!ret);
+    ret = sigaddset(setp, SIG_TYPE);
+    assert(!ret);
 }
 
 int InterruptManager::interrupt_set(int enabled) {
@@ -103,39 +132,4 @@ int MicroFiber::safe_printf(const char *format, ...) {
     va_end(args);
     InterruptManager::interrupt_set(enabled);
     return ret;
-}
-
-static void set_signal(sigset_t *setp) {
-    int ret;
-    ret = sigemptyset(setp);
-    assert(!ret);
-    ret = sigaddset(setp, SIG_TYPE);
-    assert(!ret);
-}
-
-// This function is called when the signal is received
-static void interrupt_handler(int sig, siginfo_t *sip, void *contextVP) {
-    (void) sig;
-    (void) sip;
-    (void) contextVP;
-
-    assert(!MicroFiber::is_interrupt_enabled());
-
-    set_interrupt();
-    MicroFiber::thread_yield(static_cast<ThreadID>(MicroFiber::ThreadCodes::ANY));
-}
-
-// Set the interval for the timer to trigger the interrupt
-static void set_interrupt() {
-    int ret;
-    struct itimerval val{};
-
-    val.it_interval.tv_sec = 0;
-    val.it_interval.tv_usec = 0;
-
-    val.it_value.tv_sec = 0;
-    val.it_value.tv_usec = INTERRUPT_INTERVAL;
-
-    ret = setitimer(ITIMER_REAL, &val, nullptr);
-    assert(!ret);
 }

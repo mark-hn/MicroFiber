@@ -7,17 +7,17 @@
 #include <cassert>
 #include <ucontext.h>
 
-/* Exit status of the process */
+// Exit status of the process
 static int exit_status = 0;
 
-/* Context of the main thread for future clean-up */
+// Context of the main thread for future clean-up
 static ucontext_t main_context;
 
-/* This flag is used to detect stack mismatch when returning from MicroFiber_start */
+// This flag is used to detect stack mismatch when returning from MicroFiber_start
 static volatile bool called = false;
 
 
-/* Ends the MicroFiber system by calling finalization routines before exiting */
+// Ends the MicroFiber system by calling finalization routines before exiting
 static void MicroFiber_end() {
     assert(!MicroFiber::is_interrupt_enabled());
     InterruptManager::interrupt_end();
@@ -26,7 +26,7 @@ static void MicroFiber_end() {
     exit(exit_status);
 }
 
-/* Start the MicroFiber threading system with the provided configuration */
+// Start the MicroFiber threading system with the provided configuration
 void MicroFiber::microfiber_start(const Config *config) {
     // Initialize random seed
     srand(0);
@@ -50,7 +50,7 @@ void MicroFiber::microfiber_start(const Config *config) {
     InterruptManager::interrupt_on();
 }
 
-/* Cleans up resources and exits the process with the provided exit code */
+// Cleans up resources and exits the process with the provided exit code
 [[noreturn]] void MicroFiber::microfiber_exit(int code) {
     assert(!MicroFiber::is_interrupt_enabled());
     exit_status = code;
