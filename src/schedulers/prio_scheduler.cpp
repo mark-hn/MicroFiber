@@ -2,17 +2,32 @@
 #include "src/microfiber.hpp"
 #include "src/thread_manager.hpp"
 
+static std::unique_ptr<FifoQueue> ready_queue;
+
 int PrioScheduler::init() {
+    ready_queue = std::make_unique<FifoQueue>(MAX_THREAD_COUNT);
+    if (!ready_queue) {
+        return static_cast<int>(MicroFiber::ThreadCodes::NO_MEMORY);
+    }
+    return 0;
 }
 
-int PrioScheduler::enqueue(std::shared_ptr<Thread> thread) {
+int PrioScheduler::enqueue(Thread *thread) {
+    assert(thread->state == Thread::State::READY || thread->state == Thread::State::KILLED);
+    if (ready_queue->push_sorted(thread) == -1) {
+        return static_cast<int>(MicroFiber::ThreadCodes::MAX_THREADS);
+    }
+    return 0;
 }
 
-std::shared_ptr<Thread> PrioScheduler::dequeue() {
+Thread *PrioScheduler::dequeue() {
+    return ready_queue->pop();
 }
 
-std::shared_ptr<Thread> PrioScheduler::remove(int tid) {
+Thread *PrioScheduler::remove(int tid) {
+    return ready_queue->remove(tid);
 }
 
 void PrioScheduler::destroy() {
+    ready_queue.reset();
 }

@@ -16,11 +16,11 @@ public:
 
     virtual int init() = 0;
 
-    virtual int enqueue(std::shared_ptr<Thread> thread) = 0;
+    virtual int enqueue(Thread *thread) = 0;
 
-    virtual std::shared_ptr<Thread> dequeue() = 0;
+    virtual Thread *dequeue() = 0;
 
-    virtual std::shared_ptr<Thread> remove(int tid) = 0;
+    virtual Thread *remove(int tid) = 0;
 
     virtual void destroy() = 0;
 
@@ -48,11 +48,11 @@ public:
 
     int init() override;
 
-    int enqueue(std::shared_ptr<Thread> thread) override;
+    int enqueue(Thread *thread) override;
 
-    std::shared_ptr<Thread> dequeue() override;
+    Thread *dequeue() override;
 
-    std::shared_ptr<Thread> remove(int tid) override;
+    Thread *remove(int tid) override;
 
     void destroy() override;
 };
@@ -63,11 +63,11 @@ public:
 
     int init() override;
 
-    int enqueue(std::shared_ptr<Thread> thread) override;
+    int enqueue(Thread *thread) override;
 
-    std::shared_ptr<Thread> dequeue() override;
+    Thread *dequeue() override;
 
-    std::shared_ptr<Thread> remove(int tid) override;
+    Thread *remove(int tid) override;
 
     void destroy() override;
 };
@@ -78,17 +78,17 @@ public:
 
     int init() override;
 
-    int enqueue(std::shared_ptr<Thread> thread) override;
+    int enqueue(Thread *thread) override;
 
-    std::shared_ptr<Thread> dequeue() override;
+    Thread *dequeue() override;
 
-    std::shared_ptr<Thread> remove(int tid) override;
+    Thread *remove(int tid) override;
 
     void destroy() override;
 };
 
 
-extern std::shared_ptr<Scheduler> scheduler;
+extern Scheduler *scheduler;
 
 bool scheduler_init(std::basic_string<char> type);
 

@@ -1,13 +1,13 @@
 #include "scheduler.hpp"
 
 // Global pointer to the current scheduler
-std::shared_ptr<Scheduler> scheduler;
+Scheduler *scheduler;
 
 // Set of available schedulers
-std::vector<std::shared_ptr<Scheduler>> schedulers = {
-        std::make_shared<RandScheduler>(),
-        std::make_shared<FCFScheduler>(),
-        std::make_shared<PrioScheduler>()
+std::vector<Scheduler *> schedulers = {
+        new RandScheduler(),
+        new FCFScheduler(),
+        new PrioScheduler()
 };
 
 /* Initialize the scheduling subsystem */
@@ -15,7 +15,7 @@ bool scheduler_init(Scheduler::Type type) {
     scheduler = nullptr;
 
     auto it = std::find_if(schedulers.begin(), schedulers.end(),
-                           [type](const std::shared_ptr<Scheduler> &s) {
+                           [type](Scheduler *&s) {
                                return s->get_name() == (type == Scheduler::Type::Random ? "rand" :
                                                         type == Scheduler::Type::FCFS ? "fcfs" : "prio");
                            });
