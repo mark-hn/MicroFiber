@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-
 project(MicroFiber)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -17,4 +16,18 @@ set(SOURCES
         src/queue.cpp
 )
 
-add_executable(microfiber ${SOURCES})
+set(TESTS
+        main
+        lock
+        preemptive
+        prio
+        wait
+        wait_exited
+        wait_kill
+        wait_many
+        wakeup
+)
+
+foreach (test ${TESTS})
+    add_executable(test_${test} ${SOURCES} test/${test}.cpp)
+endforeach ()
